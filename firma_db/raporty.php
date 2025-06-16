@@ -4,15 +4,22 @@ $db = new Database();
 $conn = $db->connect();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $suma = $conn->query("SELECT SUM(kwota) AS laczna_kwota FROM platnosc")->fetch(PDO::FETCH_ASSOC);
-    $stmt = $conn->prepare("INSERT INTO raport_fiskalny (data_raportu, suma)
-                            VALUES (?, ?)");
-    $stmt->execute([
-        date('Y-m-d'),
-        $suma['laczna_kwota']
-    ]);
+    // Tworzymy nowy pusty raport z datą
+    $stmt = $conn->prepare("INSERT INTO raport_fiskalny (data_raportu) VALUES (?)");
+    $stmt->execute([date('Y-m-d')]);
+
+    // Pobierz ID nowo utworzonego raportu
+    $raportId = $conn->lastInsertId();
+
+    // Przypisz to ID do wszystkich płatności i usług (które nie miały jeszcze raportu)
+    $conn->prepare("UPDATE platnosc SET id_raportu = ? WHERE id_raportu IS NULL")->execute([$raportId]);
+    $conn->prepare("UPDATE usluga SET id_raportu = ? WHERE id_raportu IS NULL")->execute([$raportId]);
+
+    // Teraz trigger zaktualizuje suma_przychodow i suma_kosztow automatycznie
+
     header("Location: raporty.php");
 }
+
 
 $raporty = $conn->query("SELECT * FROM raport_fiskalny ORDER BY id_raportu DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -27,7 +34,12 @@ $raporty = $conn->query("SELECT * FROM raport_fiskalny ORDER BY id_raportu DESC"
     <h3>Lista raportów:</h3>
     <ul>
         <?php foreach ($raporty as $r): ?>
-            <li>Raport #<?= $r['id_raportu'] ?> – <?= $r['data_raportu'] ?> – Suma: <?= $r['suma'] ?> zł</li>
+            <li>
+                Raport #<?= $r['id_raportu'] ?> – <?= $r['data_raportu'] ?><br>
+                Suma przychodów: <?= $r['suma_przychodow'] ?? 'brak danych' ?> zł<br>
+                Suma kosztów: <?= $r['suma_kosztow'] ?? 'brak danych' ?> zł<br>
+                Bilans: <?= $r['bilans_finansowy'] ?? 'brak danych' ?> zł
+            </li>
         <?php endforeach; ?>
     </ul>
 </main>

@@ -3,7 +3,7 @@ class Database {
     private $host = "localhost";
     private $db_name = "firma_db";
     private $username = "postgres";
-    private $password = "haslo";
+    private $password = "postgres";
     public $conn;
 
     public function connect() {

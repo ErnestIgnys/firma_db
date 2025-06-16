@@ -3,7 +3,17 @@ require 'db.php';
 $db = new Database();
 $conn = $db->connect();
 
-$uslugi = $conn->query("SELECT id_uslugi, rodzaj_uslugi, cena FROM usluga")->fetchAll(PDO::FETCH_ASSOC);
+// Pobieramy tylko usługi nie w pełni opłacone
+$uslugi = $conn->query("
+    SELECT u.id_uslugi, u.rodzaj_uslugi, u.cena
+    FROM usluga u
+    LEFT JOIN (
+        SELECT id_uslugi, SUM(kwota) AS suma_zaplacona
+        FROM platnosc
+        GROUP BY id_uslugi
+    ) p ON u.id_uslugi = p.id_uslugi
+    WHERE COALESCE(p.suma_zaplacona, 0) < u.cena
+")->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("INSERT INTO platnosc (id_uslugi, kwota, metoda_platnosci, data_platnosci)
@@ -15,12 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['data_platnosci']
     ]);
     header("Location: platnosci.php");
+    exit;
 }
 
 $platnosci = $conn->query("SELECT p.*, u.rodzaj_uslugi FROM platnosc p
                            JOIN usluga u ON p.id_uslugi = u.id_uslugi
                            ORDER BY id_platnosci")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 
 <?php include 'includes/header.php'; ?>
 <main>
@@ -35,7 +47,7 @@ $platnosci = $conn->query("SELECT p.*, u.rodzaj_uslugi FROM platnosc p
         <input name="kwota" type="number" step="0.01" placeholder="Kwota" required>
         <select name="metoda_platnosci" required>
             <option value="">Metoda płatności</option>
-            <option value="gotówka">Gotówka</option>
+            <option value="gotowka">Gotowka</option>
             <option value="karta">Karta</option>
             <option value="przelew">Przelew</option>
         </select>
