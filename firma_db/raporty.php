@@ -4,14 +4,14 @@ $db = new Database();
 $conn = $db->connect();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Tworzymy nowy pusty raport z datą
+    // robimy nowy pusty raport z datą
     $stmt = $conn->prepare("INSERT INTO raport_fiskalny (data_raportu) VALUES (?)");
     $stmt->execute([date('Y-m-d')]);
 
-    // Pobierz ID nowo utworzonego raportu
+    // pobieramy id do nowo utworzonego raportu
     $raportId = $conn->lastInsertId();
 
-    // Przypisz to ID do wszystkich płatności i usług (które nie miały jeszcze raportu)
+    // przypisujemt to id do wszystkich płatności i usług (które nie miały jeszcze raportu)
     $conn->prepare("UPDATE platnosc SET id_raportu = ? WHERE id_raportu IS NULL")->execute([$raportId]);
     $conn->prepare("UPDATE usluga SET id_raportu = ? WHERE id_raportu IS NULL")->execute([$raportId]);
 

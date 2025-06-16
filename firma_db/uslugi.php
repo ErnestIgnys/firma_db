@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("INSERT INTO usluga (id_raportu, id_samochodu, id_pracownika, rodzaj_uslugi, opis, koszt, cena, data_uslugi)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
-        $_POST['id_raportu'] ?: null,  // jeśli raport jest opcjonalny, pozwalamy na null
+        // jeśli raport jest opcjonalny pozwalamy na null
+        $_POST['id_raportu'] ?: null,  
         $_POST['id_samochodu'],
         $_POST['id_pracownika'],
         $_POST['rodzaj_uslugi'],
@@ -25,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-// Zapytanie pobierające usługi wraz z sumą wpłat i statusem opłacenia
+// zapytanko pobierające usługi wraz z sumą wpłat i statusem opłacenia
 $uslugi = $conn->query("
     SELECT 
         u.*, 

@@ -15,11 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: samochody.php");
         exit;
     }
-    // Pobierz i przygotuj zmienne
+    // probierz i przygotuj zmienne
     $nr_rejestracyjny = trim($_POST['nr_rejestracyjny']);
     $rok = (int)$_POST['rok_produkcji'];
 
-    // Sprawdź, czy taki nr rejestracyjny już istnieje
+    // sprawdzamy czy taki nr rejestracyjny już istnieje
     $check = $conn->prepare("SELECT COUNT(*) FROM samochod WHERE nr_rejestracyjny = ?");
     $check->execute([$nr_rejestracyjny]);
     $exists = $check->fetchColumn();
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($rok < 1900 || $rok > 2100) {
         $error = 'Błędny rok produkcji. Dozwolony zakres to 1900–2100.';
     } else {
-        // Wstaw do bazy
+        // Wstawianie do bazki 
         $stmt = $conn->prepare("INSERT INTO samochod (id_klienta, marka, model, nr_rejestracyjny, rok_produkcji)
                                 VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([

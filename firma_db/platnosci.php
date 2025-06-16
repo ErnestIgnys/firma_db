@@ -4,6 +4,7 @@ $db = new Database();
 $conn = $db->connect();
 
 // Pobieramy tylko usługi nie w pełni opłacone
+// pobiera rekordy z lewej tabeli usuga 
 $uslugi = $conn->query("
     SELECT u.id_uslugi, u.rodzaj_uslugi, u.cena
     FROM usluga u
